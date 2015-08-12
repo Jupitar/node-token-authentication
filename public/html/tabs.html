@@ -1,0 +1,12 @@
+<section>
+  <ul id="todo-list" class="nav nav-tabs" role="tablist">
+    <li ng-class="{ active:tab.isSet(1) }"><a href ng-click="tab.setTab(1)">Daily</a></li>
+    <li ng-class="{ active:tab.isSet(2) }"><a href ng-click="tab.setTab(2)">Weekly</a></li>
+    <li ng-class="{ active:tab.isSet(3) }"><a href ng-click="tab.setTab(3)">Monthly</a></li>
+    <li class="pull-right"><a class="link" href="/logout">Logout</a></li>
+    <li class="pull-right"><a class="link" href="/settings">Settings</a></li>
+  </ul>
+  <daily ng-show="tab.isSet(1)"></daily>
+  <weekly ng-show="tab.isSet(2)"></weekly>
+  <monthly ng-show="tab.isSet(3)"></monthly>
+</section>

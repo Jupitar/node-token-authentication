@@ -1,0 +1,30 @@
+<!-- TODO LIST -->
+<div id="todo-list" class="row">
+  <div class="col-md-8 col-md-offset-2">
+    <!-- LOOP OVER THE TODOS IN $scope.todos -->
+    <div class="panel panel-default" ng-repeat="day in daily" ng-class="{ 'panel-info':day.done }">
+      <div class="panel-heading">
+        <a class="btn btn-default" ng-click="doneDaily(day._id)">Done</a>
+        <a class="btn btn-info" ng-click="deleteDaily(day._id)">Delete</a>
+        <p class="pull-right">{{ day.date | date:'dd MMM yyyy - hh:mm:ss a'}}</p>
+        <div class="clearfix"></div>
+      </div>
+      <div class="panel-body">
+        <p><span class="fa fa-caret-right"></span> {{ day.text }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- FORM TO CREATE TODOS -->
+<div id="todo-form" class="row">
+  <div class="col-md-8 col-md-offset-2 text-center">
+    <form>
+      <div class="form-group">
+        <!-- BIND THIS VALUE TO formData.text IN ANGULAR -->
+        <input type="text" class="form-control input-lg text-center" placeholder="Add a daily todo..." ng-model="formData.text">
+      </div>
+      <!-- createToDo() WILL CREATE NEW TODOS -->
+      <button type="submit" class="btn btn-info btn-lg" ng-click="createDaily()">Add Daily</button>
+    </form>
+  </div>
+</div>

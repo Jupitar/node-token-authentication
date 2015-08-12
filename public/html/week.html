@@ -1,0 +1,30 @@
+<!-- TODO LIST -->
+<div id="todo-list" class="row">
+  <div class="col-md-8 col-md-offset-2">
+    <!-- LOOP OVER THE TODOS IN $scope.todos -->
+    <div class="panel panel-default" ng-repeat="week in weekly" ng-class="{ 'panel-success':week.done }">
+      <div class="panel-heading">
+        <a class="btn btn-default" ng-click="doneWeekly(week._id)">Done</a>
+        <a class="btn btn-success" ng-click="deleteWeekly(week._id)">Delete</a>
+        <p class="pull-right">{{ week.date | date:'dd MMM yyyy - hh:mm:ss a'}}</p>
+        <div class="clearfix"></div>
+      </div>
+      <div class="panel-body">
+        <p><span class="fa fa-caret-right"></span> {{ week.text }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- FORM TO CREATE TODOS -->
+<div id="todo-form" class="row">
+  <div class="col-md-8 col-md-offset-2 text-center">
+    <form>
+      <div class="form-group">
+        <!-- BIND THIS VALUE TO formData.text IN ANGULAR -->
+        <input type="text" class="form-control input-lg text-center" placeholder="Add a weekly todo..." ng-model="formData.text">
+      </div>
+      <!-- createToDo() WILL CREATE NEW TODOS -->
+      <button type="submit" class="btn btn-success btn-lg" ng-click="createWeekly()">Add Weekly</button>
+    </form>
+  </div>
+</div>

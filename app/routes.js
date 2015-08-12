@@ -4,7 +4,7 @@
 var User = require('./models/user');
 
 // expose the routes to our app with module.exports
-module.exports = function(express, app, io) {
+module.exports = function(express, app, io, socketio_jwt, config, jwt) {
 
     // =================================================================
     // routes ============================================================
@@ -34,7 +34,7 @@ module.exports = function(express, app, io) {
     // HOME PAGE (with login links) ========
     // =====================================
     app.get('/', function(req, res) {
-        req.session.loginDate = new Date().toString();
+        //req.session.loginDate = new Date().toString();
         res.render('index.ejs'); // load the index.ejs file
     });
 
@@ -46,7 +46,7 @@ module.exports = function(express, app, io) {
 
         // render the page and pass in any flash data if it exists
         res.render('login.ejs', {
-            message: req.flash('loginMessage')
+            message: 'america'//req.flash('loginMessage')
         });
     });
 
@@ -58,51 +58,7 @@ module.exports = function(express, app, io) {
 
         // render the page and pass in any flash data if it exists
         res.render('signup.ejs', {
-            message: req.flash('signupMessage')
-        });
-    });
-
-    // process the signup form
-    app.post('/signup', function (req, res) {
-        User.findOne({
-            'local.email': email
-        }, function(err, existingUser) {
-
-            // if there are any errors, return the error
-            if (err)
-                return done(err);
-
-            // check to see if there's already a user with that email
-            if (existingUser)
-                return done(null, false, req.flash('signupMessage', 'That email is already taken.'));
-
-            //  If we're logged in, we're connecting a new local account.
-            if (req.user) {
-                var user = req.user;
-                user.local.email = email;
-                user.local.password = user.generateHash(password);
-                user.save(function(err) {
-                    if (err)
-                        throw err;
-                    return done(null, user);
-                });
-            }
-            //  We're not logged in, so we're creating a brand new user.
-            else {
-                // create the user
-                var newUser = new User();
-
-                newUser.local.email = email;
-                newUser.local.password = newUser.generateHash(password);
-
-                newUser.save(function(err) {
-                    if (err)
-                        throw err;
-
-                    return done(null, newUser);
-                });
-            }
-
+            message: 'america'//req.flash('signupMessage')
         });
     });
 
@@ -112,6 +68,33 @@ module.exports = function(express, app, io) {
     var apiRoutes = express.Router();
 
     // ---------------------------------------------------------
+    // login (no middleware necessary since this isnt authenticated)
+    // ---------------------------------------------------------
+    // http://localhost:8080/api/login
+    apiRoutes.post('/login', function(req, res) {
+
+    // find the user
+    User.findOne({
+        'local.email': email
+    }, function(err, user) {
+        // if there are any errors, return the error
+        if (err)
+            return done(err);
+
+        // if no user is found, return the message
+        if (!user)
+            return done(null, false, req.flash('loginMessage', 'No user found.'));
+
+        if (!user.validPassword(password))
+            return done(null, false, req.flash('loginMessage', 'Oops! Wrong password.'));
+
+        // all is well, return user
+        else
+            return done(null, user);
+    });
+    });
+
+    // ---------------------------------------------------------
     // signup (no middleware necessary since this isnt authenticated)
     // ---------------------------------------------------------
     // http://localhost:8080/api/signup
@@ -119,60 +102,40 @@ module.exports = function(express, app, io) {
 
         // find the user
         User.findOne({
-            name: req.body.name
+            'local.email': req.body.email
         }, function(err, user) {
 
             if (err) throw err;
 
             if (!user) {
-                res.json({ success: false, message: 'Authentication failed. User not found.' });
-            } else if (user) {
+                // if user is not found
+                // create a user and give them a token
+                var newUser = new User();
 
-                // check if password matches
-                if (user.password != req.body.password) {
-                    res.json({ success: false, message: 'Authentication failed. Wrong password.' });
-                } else {
+                newUser.local.email = req.body.email;
+                newUser.local.password = newUser.generateHash(req.body.password);
 
-                    //  If we're logged in, we're connecting a new local account.
-                    if (req.user) {
-                        var user = req.user;
-                        user.local.email = email;
-                        user.local.password = user.generateHash(password);
-                        user.save(function(err) {
-                            if (err)
-                                throw err;
-                            return done(null, user);
-                        });
-                    }
-                    //  We're not logged in, so we're creating a brand new user.
-                    else {
-                        // if user is not found
-                        // create a user and give them a token
-                        var newUser = new User();
+                newUser.save(function(err) {
+                    if (err)
+                        throw err;
+                });
 
-                        newUser.local.email = email;
-                        newUser.local.password = newUser.generateHash(password);
+                var token = jwt.sign(newUser, app.get('superSecret'), {
+                    expiresInMinutes: 30 // expires in 30 minutes
+                });
 
-                        newUser.save(function(err) {
-                            if (err)
-                                throw err;
-
-                            return done(null, newUser);
-                        });
-
-                        var token = jwt.sign(user, app.get('superSecret'), {
-                            expiresInMinutes: 30 // expires in 30 minutes
-                        });
-
-                        res.json({
-                            success: true,
-                            message: 'Enjoy your token!',
-                            token: token
-                        });
-                    }
-
+                res.render('profile.ejs', {
+                    success: true,
+                    message: 'Enjoy your token!',
+                    token: token
+                });
+            } else {
+                console.log(user);
+                res.render('signup.ejs', {
+                    message: 'failure',
+                    user: user // get the user out of session and pass to template
+                });
             }
-
         });
     });
 
@@ -184,7 +147,7 @@ module.exports = function(express, app, io) {
 
         // find the user
         User.findOne({
-            name: req.body.name
+            'local.email': req.body.email
         }, function(err, user) {
 
             if (err) throw err;
@@ -195,7 +158,14 @@ module.exports = function(express, app, io) {
 
                 // check if password matches
                 if (user.password != req.body.password) {
-                    res.json({ success: false, message: 'Authentication failed. Wrong password.' });
+                    // res.json({
+                    //     success: false,
+                    //     message: 'Authentication failed. Wrong password.'
+                    // });
+                    res.render('profile.ejs', {
+                        success: false,
+                        message: 'Authentication failed. Wrong password.'
+                    });
                 } else {
 
                     // if user is found and password is right
@@ -204,10 +174,16 @@ module.exports = function(express, app, io) {
                         expiresInMinutes: 30 // expires in 30 minutes
                     });
 
-                    res.json({
+                    // res.json({
+                    //     success: true,
+                    //     message: 'Enjoy your token!',
+                    //     token: token
+                    // });
+                    res.render('profile.ejs', {
                         success: true,
                         message: 'Enjoy your token!',
-                        token: token
+                        token: token,
+                        user: user // get the user out of session and pass to template
                     });
                 }
 
@@ -283,15 +259,15 @@ module.exports = function(express, app, io) {
     // locally --------------------------------
     apiRoutes.get('/connect/local', function(req, res) {
         res.render('connect-local.ejs', {
-            message: req.flash('loginMessage')
+            message: 'america'//req.flash('loginMessage')
         });
     });
 
-    apiRoutes.post('/connect/local', passport.authenticate('local-signup', {
-        successRedirect: '/profile', // redirect to the secure profile section
-        failureRedirect: '/connect/local', // redirect back to the signup page if there is an error
-        failureFlash: true // allow flash messages
-    }));
+    // apiRoutes.post('/connect/local', passport.authenticate('local-signup', {
+    //     successRedirect: '/profile', // redirect to the secure profile section
+    //     failureRedirect: '/connect/local', // redirect back to the signup page if there is an error
+    //     failureFlash: true // allow flash messages
+    // }));
 
     // =============================================================================
     // UNLINK ACCOUNTS ============================================================

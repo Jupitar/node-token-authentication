@@ -10,9 +10,9 @@ var bodyParser = require('body-parser');
 app.set('view engine', 'ejs'); // set up ejs for templating
 var morgan = require('morgan');
 var mongoose = require('mongoose');
-
 var socketio_jwt = require('socketio-jwt');
-var jwt = require('jsonwebtoken'); // used to create, sign, and verify tokens
+var jwt = require('jsonwebtoken');
+
 var config = require('./config'); // get our config file
 var User = require('./app/models/user'); // get our mongoose model
 
@@ -34,7 +34,7 @@ app.use(bodyParser.json());
 app.use(morgan('dev'));
 
 // pull in the routes
-require('./app/routes.js')(express, app, io);
+require('./app/routes.js')(express, app, io, socketio_jwt, config, jwt);
 
 // =================================================================
 // start the server =====================================================

@@ -1,0 +1,30 @@
+<!-- TODO LIST -->
+<div id="todo-list" class="row">
+  <div class="col-md-8 col-md-offset-2">
+    <!-- LOOP OVER THE TODOS IN $scope.todos -->
+    <div class="panel panel-default" ng-repeat="month in monthly" ng-class="{ 'panel-warning':month.done }">
+      <div class="panel-heading">
+        <a class="btn btn-default" ng-click="doneMonthly(month._id)">Done</a>
+        <a class="btn btn-warning" ng-click="deleteMonthly(month._id)">Delete</a>
+        <p class="pull-right">{{ month.date | date:'dd MMM yyyy - hh:mm:ss a'}}</p>
+        <div class="clearfix"></div>
+      </div>
+      <div class="panel-body">
+        <p><span class="fa fa-caret-right"></span> {{ month.text }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- FORM TO CREATE TODOS -->
+<div id="todo-form" class="row">
+  <div class="col-md-8 col-md-offset-2 text-center">
+    <form>
+      <div class="form-group">
+        <!-- BIND THIS VALUE TO formData.text IN ANGULAR -->
+        <input type="text" class="form-control input-lg text-center" placeholder="Add a monthly todo..." ng-model="formData.text">
+      </div>
+      <!-- createToDo() WILL CREATE NEW TODOS -->
+      <button type="submit" class="btn btn-warning btn-lg" ng-click="createMonthly()">Add Monthly</button>
+    </form>
+  </div>
+</div>
